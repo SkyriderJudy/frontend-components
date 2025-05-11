@@ -1,21 +1,34 @@
 <script lang="ts" setup>
-import { reactive } from 'vue';
+import { ref } from 'vue';
 import { UserOutlined, LockOutlined } from '@ant-design/icons-vue';
 import { Form, FormItem, Input, Button, InputPassword, Checkbox } from 'ant-design-vue';
+import { useAuthService } from '../../api/auth/auth';
+import { useAuthStore } from '@/stores/useAuthStore';
+import type { FormState } from '../../api/auth/authType';
+import { useRouter } from 'vue-router';
 
-interface FormState {
-  username: string;
-  password: string;
-  remember: boolean;
-}
-
-const formState = reactive<FormState>({
-  username: '',
-  password: '',
-  remember: true
+const formState = ref<FormState>({
+  username: 'admin',
+  password: '123456',
+  remember: false
 });
-const onFinish = (values: any) => {
-  console.log('Success:', values);
+
+const { login } = useAuthService();
+const { setToken } = useAuthStore();
+const router = useRouter();
+
+const onFinish = (values: FormState) => {
+  login(formState.value)
+    .then((res) => {
+      // 假设后端返回 token 并存储到 localStorage
+      if (res.data.token) {
+        setToken(res.data.token);
+        window.location.href = '/';
+      }
+    })
+    .catch((error) => {
+      console.error('登录失败:', error);
+    });
 };
 
 const onFinishFailed = (errorInfo: any) => {
@@ -59,7 +72,9 @@ const onFinishFailed = (errorInfo: any) => {
           <a href="#" class="login-form-forgot">Forgot password</a>
         </FormItem>
 
-        <Button size="large" :block="true" type="primary" html-type="submit">Submit</Button>
+        <FormItem>
+          <Button size="large" :block="true" type="primary" html-type="submit">Submit</Button>
+        </FormItem>
       </Form>
     </div>
   </div>

@@ -13,12 +13,12 @@ export const useAuthStore = defineStore('auth', () => {
   });
 
   // ====== 核心方法 ======
-  function login(token: string) {
+  function setToken(token: string) {
     auth.value.token = token;
     localStorage.setItem('token', token);
   }
 
-  function logout() {
+  function removeToken() {
     auth.value.token = null;
     localStorage.removeItem('token');
   }
@@ -34,8 +34,8 @@ export const useAuthStore = defineStore('auth', () => {
 
   return {
     auth,
-    login,
-    logout,
+    setToken,
+    removeToken,
     getToken,
     refreshToken
   };

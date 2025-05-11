@@ -10,23 +10,6 @@ interface RequestOptions {
   data?: any;
 }
 
-// =================== 全局 loading 状态 ===================
-let loadingCount = 0;
-
-const showLoading = () => {
-  if (loadingCount === 0) {
-    console.log('显示全局 loading...');
-  }
-  loadingCount++;
-};
-
-const hideLoading = () => {
-  loadingCount--;
-  if (loadingCount <= 0) {
-    console.log('隐藏全局 loading');
-  }
-};
-
 // =================== 获取 token 和权限校验 ===================
 const getToken = (): string | null => localStorage.getItem('token');
 
@@ -40,7 +23,6 @@ const handleUnauthorized = (status: number): void => {
   }
 };
 
-// =================== 创建请求实例 ===================
 const createRequest = (baseURL: string = ''): AxiosInstance => {
   const instance = axios.create({
     baseURL,
@@ -66,8 +48,6 @@ const createRequest = (baseURL: string = ''): AxiosInstance => {
   // =================== 请求拦截器 ===================
   instance.interceptors.request.use(
     (config: InternalAxiosRequestConfig): InternalAxiosRequestConfig => {
-      showLoading();
-
       // 注入 token 到 headers
       const token = getToken();
       if (token && config.headers) {
@@ -82,7 +62,6 @@ const createRequest = (baseURL: string = ''): AxiosInstance => {
       return config;
     },
     (error) => {
-      hideLoading();
       return Promise.reject(error);
     }
   );
@@ -90,8 +69,6 @@ const createRequest = (baseURL: string = ''): AxiosInstance => {
   // =================== 响应拦截器 ===================
   instance.interceptors.response.use(
     (response: AxiosResponse): AxiosResponse => {
-      hideLoading();
-
       // 可扩展的 afterEach 钩子
       if (responseInterceptor.afterEach) {
         responseInterceptor.afterEach(response);
@@ -100,8 +77,6 @@ const createRequest = (baseURL: string = ''): AxiosInstance => {
       return response;
     },
     (error) => {
-      hideLoading();
-
       // 统一处理权限问题
       if (error.response) {
         const status = error.response.status;
@@ -129,7 +104,7 @@ const responseInterceptor = {
 };
 
 // =================== 导出通用请求函数 ===================
-const request = createRequest(import.meta.env.VITE_API_BASE_URL || '');
+const request = createRequest('');
 
 export default <T>(options: RequestOptions): Promise<T> => {
   return request({
